@@ -368,3 +368,266 @@ canvas {
   margin-top: 1.5rem;
   line-height: 1.4;
 }
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+
+/* Extra Small Devices (Mobile: 320px - 480px) */
+@media (max-width: 480px) {
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  .app-header {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+    flex: 1 1 100%;
+  }
+
+  .nav-tabs {
+    flex: 1 1 100%;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .nav-tab {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 0.4rem;
+  }
+
+  .app-content {
+    padding: 0.75rem;
+    min-height: auto;
+  }
+
+  .card.glass {
+    padding: 1.25rem;
+    border-radius: 1rem;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .sub {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Canvas responsiveness */
+  .canvas-container {
+    padding: 0.4rem;
+    margin-bottom: 0.8rem;
+  }
+
+  canvas {
+    max-height: 300px;
+    border-radius: 0.5rem;
+  }
+
+  .angle-value {
+    font-size: 1.8rem;
+    margin: 0.4rem 0;
+  }
+
+  .threshold-info {
+    font-size: 0.75rem;
+  }
+
+  .glass-panel {
+    padding: 0.7rem;
+    margin: 0.8rem 0;
+    border-radius: 0.8rem;
+  }
+
+  .status {
+    font-size: 0.95rem;
+    padding: 0.6rem;
+    margin: 0.8rem 0;
+  }
+
+  /* Button responsive layout */
+  .flex-row {
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    flex: 1 1 calc(50% - 0.25rem);
+    min-height: 40px;
+  }
+
+  .btn.full-width {
+    flex: 1 1 100%;
+  }
+
+  .full-width {
+    margin-top: 0.8rem;
+  }
+
+  /* Form elements */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .input-field, textarea, .file-input {
+    padding: 0.7rem;
+    font-size: 1rem;
+    border-radius: 0.4rem;
+  }
+
+  textarea {
+    min-height: 70px;
+    font-size: 1rem;
+  }
+
+  .file-input {
+    padding: 0.5rem;
+  }
+
+  .stego-tabs {
+    margin-bottom: 1rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 1.5rem;
+  }
+
+  .module-footer {
+    font-size: 0.7rem;
+    margin-top: 1rem;
+    line-height: 1.3;
+  }
+
+  .result-card {
+    margin-top: 1rem;
+  }
+
+  .result-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .copy-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .extracted-text {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+    max-height: 150px;
+  }
+}
+
+/* Small Devices (Tablets: 481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  .app-header {
+    padding: 0.9rem 1.5rem;
+  }
+
+  .logo {
+    font-size: 1.35rem;
+  }
+
+  .nav-tabs {
+    gap: 0.5rem;
+  }
+
+  .nav-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .app-content {
+    padding: 1rem;
+  }
+
+  .card.glass {
+    padding: 1.5rem;
+    border-radius: 1.2rem;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .sub {
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .canvas-container {
+    padding: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  canvas {
+    max-height: 350px;
+  }
+
+  .angle-value {
+    font-size: 2rem;
+  }
+
+  .flex-row {
+    gap: 0.6rem;
+  }
+
+  .btn {
+    padding: 0.65rem 1.2rem;
+    font-size: 0.85rem;
+    flex: 1 1 calc(50% - 0.3rem);
+  }
+
+  .form-group {
+    margin-bottom: 1.1rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  textarea {
+    min-height: 75px;
+  }
+
+  .extracted-text {
+    font-size: 0.85rem;
+    max-height: 180px;
+  }
+}
+
+/* Large Devices (Desktops: 769px+) */
+@media (min-width: 769px) {
+  .app-header {
+    padding: 1rem 2rem;
+  }
+
+  .card.glass {
+    max-width: 600px;
+  }
+}
