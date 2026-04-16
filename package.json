@@ -1,0 +1,11 @@
+{
+  "name": "dip-project",
+  "version": "1.0.0",
+  "description": "DIP Project - Privacy Tool",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:guardme",
+    "build:guardme": "cd GuardMe && npm install && npm run build",
+    "dev": "cd GuardMe && npm run dev"
+  }
+}

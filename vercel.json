@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd GuardMe && npm install && npm run build",
+  "outputDirectory": "GuardMe/dist",
+  "env": {
+    "VITE_APP_TITLE": "GuardMe"
+  }
+}
+
