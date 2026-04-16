@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Gyro Privacy Display | Tilt to Unlock</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #0a0f1e;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #1e2a3a;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #2d3e50;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 0.25rem;
+            background: linear-gradient(135deg, #a0e9ff, #6b8cff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sub {
+            color: #8aaec0;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .canvas-container {
+            background: #00000055;
+            border-radius: 1.5rem;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            background: #0a0f1e;
+            border-radius: 1rem;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .angle-panel {
+            background: #0f1722;
+            border-radius: 2rem;
+            padding: 0.8rem;
+            margin: 1rem 0;
+        }
+        .angle-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: monospace;
+            letter-spacing: 1px;
+            color: #6ee7b7;
+        }
+        .threshold-info {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .status {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0.6rem;
+            border-radius: 3rem;
+            margin: 0.8rem 0;
+            transition: 0.2s;
+        }
+        .status.locked {
+            background: #991b1b80;
+            color: #fecaca;
+            border-left: 5px solid #ef4444;
+        }
+        .status.unlocked {
+            background: #14532d80;
+            color: #bbf7d0;
+            border-left: 5px solid #4ade80;
+        }
+        button {
+            background: #3b4e62;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 3rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 0.3rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button.primary {
+            background: #4f46e5;
+            box-shadow: 0 2px 8px #4f46e580;
+        }
+        button.primary:active {
+            transform: scale(0.97);
+        }
+        input {
+            display: none;
+        }
+        .flex-row {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        footer {
+            font-size: 0.7rem;
+            color: #5e6f8d;
+            margin-top: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🔒 Gyro Privacy Display</h1>
+    <div class="sub">tilt to scramble · flat to reveal</div>
+
+    <div class="canvas-container">
+        <canvas id="privacyCanvas" width="500" height="400" style="width:100%; height:auto; max-width:500px; aspect-ratio:500/400"></canvas>
+    </div>
+
+    <div class="angle-panel">
+        <div>📐 Device Tilt (beta)</div>
+        <div class="angle-value" id="angleDisplay">— °</div>
+        <div class="threshold-info">👀 Dimming actively based on viewing angle</div>
+        <div class="threshold-info" style="margin-top:5px; color:#d8b4fe;">👤 Faces Detected: <b id="faceCountDisplay">Disabled</b></div>
+    </div>
+
+    <div id="statusBox" class="status unlocked">👀 PRIVACY SHIELD STANDBY</div>
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
+
+    <div class="flex-row">
+        <button id="loadBtn" class="primary">📁 Load Image</button>
+        <button id="gyroEnableBtn">🎮 Enable Gyroscope</button>
+        <button id="faceBtn" style="background:#059669;">📷 Enable Face Tracking</button>
+        <button id="calibrateBtn" style="background:#2d3e50;">⚙️ Calibrate Normal Angle</button>
+    </div>
+    <footer>
+        💡 Works best on mobile. Hold phone at a natural angle (45°) to see the original image.<br>
+        Tilt forward/back → instantly scrambled.
+    </footer>
+</div>
+
+<script>
+    // ---------- GLOBALS ----------
+    let canvas = document.getElementById('privacyCanvas');
+    let ctx = canvas.getContext('2d');
+    let originalImageData = null;      // stores original RGBA pixels
+    let currentBeta = 0;               // tilt angle (degrees)
+    let gyroEnabled = false;
+    let flatCalibrationOffset = 45;     // natural 45 degree holding posture as default zero
+    
+    const MAX_ANGLE = 45; // Angle at which the screen goes fully dark
+
+    // Expose specific globals to window so the module script can drive them
+    window.faceTrackingEnabled = false;
+    window.currentFaceCount = -1;
+
+    // ---------- UPDATE DISPLAY (called on gyro change and after image load) ----------
+    function updateDisplay() {
+        if (!originalImageData) {
+            // show placeholder
+            ctx.fillStyle = '#0a0f1e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#8aaec0';
+            ctx.font = '14px monospace';
+            ctx.fillText("⬆ Load an image first", canvas.width/2-90, canvas.height/2);
+            return;
+        }
+        
+        // Restore the original clear image first
+        ctx.putImageData(originalImageData, 0, 0);
+
+        if (!gyroEnabled) {
+            const statusDiv = document.getElementById('statusBox');
+            statusDiv.className = 'status locked';
+            statusDiv.innerHTML = '⚠️ Gyroscope not enabled';
+            return;
+        }
+
+        // apply calibration offset: effective angle = currentBeta - flatCalibrationOffset
+        let effectiveAngle = currentBeta - flatCalibrationOffset;
+        let absAngle = Math.abs(effectiveAngle);
+        
+        // Calculate progressive intensity (0.0 to 1.0)
+        // A deadzone of 5 degrees keeps it perfectly clear when held mostly flat
+        let intensity = 0;
+        if (absAngle > 5) {
+            intensity = Math.min((absAngle - 5) / MAX_ANGLE, 1.0);
+        }
+        
+        let customStatusMsg = null;
+        let customStatusColor = null;
+        let customBorderColor = null;
+
+        // --- FACE TRACKING PENALTY ---
+        if (window.faceTrackingEnabled) {
+            if (window.currentFaceCount === 0) {
+                intensity = 1.0;
+                customStatusMsg = '🤷 NO FACE DETECTED (LOCKED)';
+                customStatusColor = '#47556980'; // gray
+                customBorderColor = '#94a3b8';
+            } else if (window.currentFaceCount > 1) {
+                intensity = 1.0;
+                customStatusMsg = '🚨 SNOOPER DETECTED (2+ FACES) 🚨';
+                customStatusColor = '#7f1d1d'; // dark red
+                customBorderColor = '#dc2626'; // pure red
+            }
+        }
+        
+        // update status UI based on intensity
+        const statusDiv = document.getElementById('statusBox');
+        if (customStatusMsg) {
+            statusDiv.className = 'status locked';
+            statusDiv.innerHTML = customStatusMsg;
+            statusDiv.style.backgroundColor = customStatusColor;
+            statusDiv.style.borderLeftColor = customBorderColor;
+        } else if (intensity < 0.1) {
+            statusDiv.className = 'status unlocked';
+            statusDiv.innerHTML = '🔓 DISPLAY CLEAR – NORMAL VIEW';
+            statusDiv.style.backgroundColor = '';
+            statusDiv.style.borderLeftColor = '';
+        } else if (intensity < 0.8) {
+            statusDiv.className = 'status locked';
+            statusDiv.innerHTML = '🛡️ PRIVACY FILTER ACTIVE';
+            statusDiv.style.backgroundColor = '#b4530980'; // Orange warning
+            statusDiv.style.borderLeftColor = '#f59e0b';
+        } else {
+            statusDiv.className = 'status locked';
+            statusDiv.innerHTML = '🔒 SCREEN OBSCURED – SAFE';
+            statusDiv.style.backgroundColor = '#991b1b80'; // Red secure
+            statusDiv.style.borderLeftColor = '#ef4444';
+        }
+
+        // --- Apply Samsung-style "Flex Magic Pixel" Optical Effect ---
+        if (intensity > 0) {
+            // 1. Overall screen darkening (limits side-angle light emission)
+            // It gets progressively darker up to 96% opacity
+            ctx.fillStyle = `rgba(0, 0, 0, ${intensity * 0.96})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Simulated micro-louvers (vertical grating structures)
+            // These lines simulate the prisms clamping light at tighter angles
+            let louverSpacing = 3;  // Extremely tight pixel-level spacing
+            let louverThickness = 1 + (intensity * 2); // Louvers appear thicker at sharp angles
+            
+            ctx.fillStyle = `rgba(0, 0, 0, ${intensity})`; // Louvers become solid back
+            for (let x = 0; x < canvas.width; x += louverSpacing) {
+                ctx.fillRect(x, 0, louverThickness, canvas.height);
+            }
+            
+            // 3. Contrast drop overlay (Simulates refracted internal light scattering)
+            ctx.fillStyle = `rgba(20, 25, 40, ${intensity * 0.4})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    // ---------- LOAD IMAGE FROM USER ----------
+    function handleImageUpload(file) {
+        if (!file) return;
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            img.onload = () => {
+                // resize canvas to match image dimensions (max 800px for performance)
+                let maxDim = 700;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim) {
+                    height = (height * maxDim) / width;
+                    width = maxDim;
+                }
+                if (height > maxDim) {
+                    width = (width * maxDim) / height;
+                    height = maxDim;
+                }
+                canvas.width = Math.floor(width);
+                canvas.height = Math.floor(height);
+                // draw original onto canvas and store pixel data
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // immediately update display (since gyro might not be active yet)
+                updateDisplay();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ---------- GYROSCOPE HANDLER (with calibration) ----------
+    function onDeviceOrientation(event) {
+        if (!gyroEnabled) return;
+        // beta: front-back tilt, range -180 to 180, 0 = flat
+        let beta = event.beta;
+        if (beta === null || beta === undefined) return;
+        currentBeta = beta;
+        document.getElementById('angleDisplay').innerHTML = currentBeta.toFixed(1) + "°";
+        updateDisplay();
+    }
+
+    // ---------- ENABLE GYRO (iOS + Android) ----------
+    function enableGyroscope() {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iOS requires explicit permission prompt
+            DeviceOrientationEvent.requestPermission()
+                .then(perm => {
+                    if (perm === 'granted') {
+                        window.addEventListener('deviceorientation', onDeviceOrientation);
+                        gyroEnabled = true;
+                        document.getElementById('gyroEnableBtn').innerText = '✅ Gyro Active';
+                        document.getElementById('gyroEnableBtn').disabled = true;
+                        updateDisplay();
+                    } else {
+                        alert("Permission denied. Privacy mode won't work.");
+                    }
+                })
+                .catch(err => alert("Error: " + err));
+        } else {
+            // Android & desktop (desktop will not have beta but we allow)
+            window.addEventListener('deviceorientation', onDeviceOrientation);
+            gyroEnabled = true;
+            document.getElementById('gyroEnableBtn').innerText = '✅ Gyro Active';
+            document.getElementById('gyroEnableBtn').disabled = true;
+            updateDisplay();
+        }
+    }
+
+    // ---------- CALIBRATION: set current tilt as "flat" (zero) ----------
+    function calibrateFlat() {
+        if (!gyroEnabled) {
+            alert("Please enable gyroscope first.");
+            return;
+        }
+        flatCalibrationOffset = currentBeta;
+        // update display to reflect new offset
+        updateDisplay();
+        // show temporary feedback
+        let angleDiv = document.getElementById('angleDisplay');
+        let originalText = angleDiv.innerHTML;
+        angleDiv.innerHTML = "⚙️ Calibrated!";
+        setTimeout(() => {
+            if (gyroEnabled) angleDiv.innerHTML = currentBeta.toFixed(1) + "°";
+            else angleDiv.innerHTML = "— °";
+        }, 800);
+    }
+
+    // Expose updateDisplay to window
+    window.updateDisplay = updateDisplay;
+
+    // ---------- UI BINDINGS ----------
+    document.getElementById('loadBtn').addEventListener('click', () => {
+        let fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = (e) => handleImageUpload(e.target.files[0]);
+        fileInput.click();
+    });
+    
+    document.getElementById('gyroEnableBtn').addEventListener('click', enableGyroscope);
+    document.getElementById('calibrateBtn').addEventListener('click', calibrateFlat);
+    
+    // initial placeholder
+    ctx.fillStyle = '#0a0f1e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#6b8cff';
+    ctx.font = '14px monospace';
+    ctx.fillText("📸 Load image & enable gyro", canvas.width/2-110, canvas.height/2);
+</script>
+
+<script type="module">
+    import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
+
+    const video = document.getElementById("webcam");
+    const faceBtn = document.getElementById("faceBtn");
+    let isVideoPlaying = false;
+    let detector = null;
+
+    async function initializeFaceDetector() {
+        faceBtn.innerText = "⏳ Loading AI...";
+        faceBtn.disabled = true;
+
+        try {
+            const vision = await FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+            );
+            detector = await FaceDetector.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite"
+                },
+                runningMode: "VIDEO",
+                minDetectionConfidence: 0.5
+            });
+
+            // Request camera
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+            video.srcObject = stream;
+            video.addEventListener("loadeddata", () => {
+                isVideoPlaying = true;
+                window.faceTrackingEnabled = true;
+                faceBtn.innerText = "✅ Face Tracking Active";
+                requestAnimationFrame(detectFaces);
+            });
+        } catch(err) {
+            alert("Camera error (Need HTTPS!): " + err);
+            faceBtn.innerText = "❌ Tracking Blocked";
+            faceBtn.disabled = false;
+        }
+    }
+
+    let lastVideoTime = -1;
+    function detectFaces() {
+        if (!isVideoPlaying || !detector) return;
+        
+        let startTimeMs = performance.now();
+        if (video.currentTime !== lastVideoTime) {
+            lastVideoTime = video.currentTime;
+            const detections = detector.detectForVideo(video, startTimeMs);
+            const newFaceCount = detections.detections.length;
+            
+            // Only update display if count changed
+            if (window.currentFaceCount !== newFaceCount) {
+                window.currentFaceCount = newFaceCount;
+                document.getElementById("faceCountDisplay").innerText = newFaceCount;
+                window.updateDisplay();
+            }
+        }
+        requestAnimationFrame(detectFaces);
+    }
+
+    faceBtn.addEventListener("click", initializeFaceDetector);
+</script>
+
+</body>
+</html>

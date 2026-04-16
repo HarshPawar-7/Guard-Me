@@ -1,0 +1,129 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    background: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+}
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: #e2e8f0;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 30px;
+    transition: 0.2s;
+}
+.tab-btn.active {
+    background: #2c7da0;
+    color: white;
+}
+.mode {
+    display: none;
+}
+.mode.active {
+    display: block;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+textarea {
+    resize: vertical;
+}
+.btn {
+    background: #2c7da0;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+}
+.btn:hover {
+    background: #1f5e7a;
+}
+.status, .result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.result-card {
+    background: #eef2ff;
+    border-radius: 8px;
+    margin-top: 15px;
+    border: 1px solid #cbd5e1;
+    overflow: hidden;
+}
+.result-header {
+    background: #d9e2ef;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #cbd5e1;
+    font-weight: 600;
+}
+.copy-btn {
+    background: #2c7da0;
+    border: none;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.copy-btn:hover {
+    background: #1f5e7a;
+}
+.extracted-text {
+    margin: 0;
+    padding: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 0.9rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.error {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.success {
+    background: #dcfce7;
+    color: #166534;
+}

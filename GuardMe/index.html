@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>GuardMe | Unified Privacy Suite</title>
+    <!-- Preconnect to Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="logo">🛡️ GuardMe</div>
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-target="module-privacy">Privacy Display</button>
+        <button class="nav-tab" data-target="module-stego">Steganography</button>
+      </nav>
+    </header>
+
+    <main class="app-content">
+      <!-- Privacy Display Module -->
+      <section id="module-privacy" class="module active">
+        <div class="card glass">
+            <h1>🔒 Gyro Privacy Display</h1>
+            <div class="sub">tilt to scramble · flat to reveal</div>
+            
+            <div class="canvas-container">
+                <canvas id="privacyCanvas" width="500" height="400" style="width:100%; height:auto; max-width:500px; aspect-ratio:500/400"></canvas>
+            </div>
+            
+            <div class="angle-panel glass-panel">
+                <div>📐 Device Tilt (beta)</div>
+                <div class="angle-value" id="angleDisplay">— °</div>
+                <div class="threshold-info">👀 Dimming actively based on viewing angle</div>
+                <div class="threshold-info" style="margin-top:5px; color:#d8b4fe;">👤 Faces Detected: <b id="faceCountDisplay">Disabled</b></div>
+            </div>
+            
+            <div id="statusBox" class="status unlocked">👀 PRIVACY SHIELD STANDBY</div>
+            <video id="webcam" autoplay playsinline style="display:none;"></video>
+            
+            <div class="flex-row actions">
+                <button id="loadBtn" class="btn primary">📁 Load Image</button>
+                <button id="gyroEnableBtn" class="btn">🎮 Enable Gyro</button>
+                <button id="faceBtn" class="btn success">📷 Face Tracking</button>
+                <button id="calibrateBtn" class="btn dark">⚙️ Calibrate</button>
+            </div>
+            <footer class="module-footer">
+                💡 Works best on mobile. Hold phone at a natural angle (45°) to see the original image.<br>
+                Tilt forward/back → instantly scrambled.
+            </footer>
+        </div>
+      </section>
+
+      <!-- Steganography Module -->
+      <section id="module-stego" class="module">
+        <div class="card glass">
+            <h1>🩺 Medical Steganography</h1>
+            <p class="sub">Hide sensitive patient data inside medical images securely.</p>
+
+            <div class="tabs stego-tabs">
+                <button class="tab-btn active" data-mode="hide">Hide Data</button>
+                <button class="tab-btn" data-mode="extract">Extract Data</button>
+            </div>
+
+            <!-- Hide Mode -->
+            <div id="hideMode" class="stego-mode active">
+                <div class="form-group">
+                    <label>Upload Medical Image (PNG/JPEG)</label>
+                    <input type="file" id="hideImage" accept="image/*" class="file-input">
+                </div>
+                <div class="form-group">
+                    <label>Patient Data (JSON or Text)</label>
+                    <textarea id="patientData" rows="4" placeholder='{"id":"12345","name":"John Doe","diagnosis":"Normal"}'></textarea>
+                    <small>Data will be embedded globally in the image.</small>
+                </div>
+                <div class="form-group">
+                    <label>Optional: Password (for XOR encryption)</label>
+                    <input type="password" id="hidePassword" placeholder="Leave empty for no encryption" class="input-field">
+                </div>
+                <button id="hideBtn" class="btn primary full-width">Hide & Download Image</button>
+                <div id="hideStatus" class="status-msg"></div>
+            </div>
+
+            <!-- Extract Mode -->
+            <div id="extractMode" class="stego-mode">
+                <div class="form-group">
+                    <label>Upload Stego Image</label>
+                    <input type="file" id="extractImage" accept="image/*" class="file-input">
+                </div>
+                <div class="form-group">
+                    <label>Password (if used during embedding)</label>
+                    <input type="password" id="extractPassword" class="input-field">
+                    <small>If the password is wrong, you'll see an error.</small>
+                </div>
+                <button id="extractBtn" class="btn primary full-width">Extract Data</button>
+                <div id="extractResult" class="result-card glass-panel" style="display: none;">
+                    <div class="result-header">
+                        <strong>📄 Extracted Data</strong>
+                        <button id="copyBtn" class="btn copy-btn">Copy</button>
+                    </div>
+                    <pre id="extractedText" class="extracted-text"></pre>
+                </div>
+                <div id="extractStatus" class="status-msg"></div>
+            </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/privacy.js"></script>
+    <script type="module" src="/src/steganography.js"></script>
+  </body>
+</html>
